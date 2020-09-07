@@ -660,3 +660,9 @@ async def on_command_error(ctx, error):
 	raise error
 
 bot.run("BOT_TOKEN")
+
+@client.event
+async def on_ready():
+    await client.change_presence(status=discord.Status.do_not_disturb, activity=discord.Game(name='놀쟈아'))
+    #온라인 online 자리비움 idle 방해금지 do_not_disturb, dnd
+    print(f'히힛~!')
