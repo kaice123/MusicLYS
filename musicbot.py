@@ -33,6 +33,12 @@ logging.basicConfig(stream=log_stream, level=logging.WARNING)
 #ilsanglog.addHandler(handler)
 #####################################################
 
+@bot.event
+async def on_ready():
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game(name='놀쟈아'))
+    #온라인 online 자리비움 idle 방해금지 do_not_disturb, dnd
+    print(f'히힛~!')
+
 access_token = os.environ["BOT_TOKEN"]
 
 def init():
@@ -660,9 +666,3 @@ async def on_command_error(ctx, error):
 	raise error
 
 bot.run("BOT_TOKEN")
-
-@client.event
-async def on_ready():
-    await client.change_presence(status=discord.Status.do_not_disturb, activity=discord.Game(name='놀쟈아'))
-    #온라인 online 자리비움 idle 방해금지 do_not_disturb, dnd
-    print(f'히힛~!')
