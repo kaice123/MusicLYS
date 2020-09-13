@@ -59,21 +59,6 @@ def init():
 
 init()
 
-#mp3 파일 생성함수(gTTS 이용, 남성목소리)
-async def MakeSound(saveSTR, filename):
-	
-	tts = gTTS(saveSTR, lang = 'ko')
-	tts.save('./' + filename + '.wav')
-	'''
-	try:
-		encText = urllib.parse.quote(saveSTR)
-		urllib.request.urlretrieve("https://clova.ai/proxy/voice/api/tts?text=" + encText + "%0A&voicefont=1&format=wav",filename + '.wav')
-	except Exception as e:
-		print (e)
-		tts = gTTS(saveSTR, lang = 'ko')
-		tts.save('./' + filename + '.wav')
-		pass
-	'''
 #mp3 파일 재생함수	
 async def PlaySound(voiceclient, filename):
 	source = discord.FFmpegPCMAudio(filename)
@@ -598,7 +583,7 @@ class Music(commands.Cog):
 	@commands.command(name=command[12][0], aliases=command[12][1:])   #도움말
 	async def menu_(self, ctx):
 		command_list = ''
-		command_list += '!인중 : 봇상태가 안좋을 때 쓰세요!' + '\n'    #!
+		command_list += '!load : 봇상태가 안좋을 때 쓰세요!' + '\n'    #!
 		command_list += ','.join(command[0]) + '\n'     #!들어가자
 		command_list += ','.join(command[1]) + '\n'     #!나가자
 		command_list += ','.join(command[2]) + ' [검색어] or [url]\n'     #!재생
@@ -620,24 +605,10 @@ class Music(commands.Cog):
 				)
 		await ctx.send( embed=embed, tts=False)
 	################ 음성파일 생성 후 재생 ################ 			
-	@commands.command(name="!인중")
+	@commands.command(name="!load")
 	async def playText_(self, ctx):
-		#msg = ctx.message.content[len(ctx.invoked_with)+1:]
-		#sayMessage = msg
-		await MakeSound('뮤직봇 상태가 별로 안좋아오', './say' + str(ctx.guild.id))
 		await ctx.send("```뮤직봇 상태가 별로 안좋아오```", tts=False)
-		
-		if not ctx.voice_state.voice:
-			await ctx.invoke(self._summon)
-			
-		if ctx.voice_state.is_playing:
-			ctx.voice_state.voice.stop()
-		
-		await PlaySound(ctx.voice_state.voice, './say' + str(ctx.guild.id) + '.wav')
 
-
-		await ctx.voice_state.stop()
-		del self.voice_states[ctx.guild.id]
 
 bot = commands.Bot('', help_command = None, description='뮤직봇')
 bot.add_cog(Music(bot))
@@ -648,6 +619,7 @@ async def on_ready():
 	print(bot.user.name)
 	print(bot.user.id)
 	print("===========")
+	print("먀")
 	
 	await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=command[12][0], type=1), afk = False)
 
