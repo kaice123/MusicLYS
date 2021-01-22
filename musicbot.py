@@ -33,7 +33,8 @@ logging.basicConfig(stream=log_stream, level=logging.WARNING)
 #ilsanglog.addHandler(handler)
 #####################################################
 
-access_token = os.environ["BOT_TOKEN"]
+# access_token = os.environ["BOT_TOKEN"]
+access_token = "NzA0NTE1NDEyMTU4NTc4NzA4.XqeRGw.1E6rvmAcEZp-qD2PoNQ3B5n1Hbg"
 
 def init():
 	global command
@@ -58,19 +59,6 @@ def init():
 	#print (command)
 
 init()
-
-#mp3 파일 재생함수	
-async def PlaySound(voiceclient, filename):
-	source = discord.FFmpegPCMAudio(filename)
-	try:
-		voiceclient.play(source)
-	except discord.errors.ClientException:
-		while voiceclient.is_playing():
-			await asyncio.sleep(1)
-	while voiceclient.is_playing():
-		await asyncio.sleep(1)
-	voiceclient.stop()
-	source.cleanup()
 
 # Silence useless bug reports messages
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -150,15 +138,17 @@ class YTDLSource(discord.PCMVolumeTransformer):
 			song_list_str : str = ""
 			cnt : int = 0
 			song_index : int = 0
+			song_url_list : list = []
 
 			for data_info in data["entries"]:
 				cnt += 1
 				if 'title' not in data_info:
 					data_info['title'] = f"{search} - 제목 정보 없음"
 				song_list_str += f"`{cnt}.` [**{data_info['title']}**](https://www.youtube.com/watch?v={data_info['url']})\n"
+				song_url_list.append(f"https://www.youtube.com/watch?v={data_info['url']}")
 
 			embed = discord.Embed(description= song_list_str)
-			embed.set_footer(text=f"10초 안에 선택 안하면 ")
+			embed.set_footer(text=f"빨리골라 20초준다")
 
 			song_list_message = await ctx.send(embed = embed)
 
@@ -168,7 +158,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 			def reaction_check(reaction, user):
 				return (reaction.message.id == song_list_message.id) and (user.id == ctx.author.id) and (str(reaction) in emoji_list)
 			try:
-				reaction, user = await bot.wait_for('reaction_add', check = reaction_check, timeout = 10)
+				reaction, user = await bot.wait_for('reaction_add', check = reaction_check, timeout = 20)
 			except asyncio.TimeoutError:
 				reaction = "🚫"
 
@@ -190,7 +180,9 @@ class YTDLSource(discord.PCMVolumeTransformer):
 			else:
 				return False
 			
-			result_url = f"https://www.youtube.com/watch?v={data['entries'][song_index]['url']}"
+			#result_url = f"https://www.youtube.com/watch?v={data['entries'][song_index]['url']}"
+			result_url = song_url_list[song_index]
+			print(result_url)
 		else:
 			result_url = search
 
@@ -373,7 +365,7 @@ class Music(commands.Cog):
 
 	def cog_check(self, ctx: commands.Context):
 		if not ctx.guild:
-			raise commands.NoPrivateMessage('This command can\'t be used in DM channels.')
+			raise commands.NoPrivateMessage('왜 디엠을?')
 
 		return True
 
@@ -381,7 +373,7 @@ class Music(commands.Cog):
 		ctx.voice_state = self.get_voice_state(ctx)
 
 	async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError):
-		await ctx.send('에러 : {}'.format(str(error)))
+		await ctx.send('폭4 : {}'.format(str(error)))
 	'''
 	@commands.command(name='join', invoke_without_subcommand=True)
 	async def _join(self, ctx: commands.Context):
@@ -398,7 +390,7 @@ class Music(commands.Cog):
 	#@commands.has_permissions(manage_guild=True)
 	async def _summon(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None):
 		if not channel and not ctx.author.voice:
-			raise VoiceError(':no_entry_sign: 음성채널 접속 후 불러주세오')
+			raise VoiceError(':no_entry_sign: 어디로 가')
 
 		destination = channel or ctx.author.voice.channel
 		if ctx.voice_state.voice:
@@ -411,7 +403,7 @@ class Music(commands.Cog):
 	#@commands.has_permissions(manage_guild=True)
 	async def _leave(self, ctx: commands.Context):
 		if not ctx.voice_state.voice:
-			return await ctx.send(':no_entry_sign: 음성채널 접속 후 불러주세오')
+			return await ctx.send(':no_entry_sign: 어디로 가')
 
 		await ctx.voice_state.stop()
 		del self.voice_states[ctx.guild.id]
@@ -421,16 +413,16 @@ class Music(commands.Cog):
 		vc = ctx.voice_client
 
 		if not ctx.voice_state.is_playing:
-			return await ctx.send(':mute: 쉬는중~')
+			return await ctx.send(':mute: 뭐')
 
 		if not 0 < volume < 101:
-			return await ctx.send('```소리는 1 ~ 100 사이로 적어주세오```')
+			return await ctx.send('```볼륨은 1 ~ 100 사이로```')
 
 		if vc.source:
 			vc.source.volume = volume / 100
 
 		ctx.voice_state.volume = volume / 100
-		await ctx.send(':loud_sound: 소리 {}%로 바꾼'.format(volume))
+		await ctx.send(':loud_sound: 볼륨 {}%'.format(volume))
 
 	@commands.command(name=command[7][0], aliases=command[7][1:])
 	async def _now(self, ctx: commands.Context):
@@ -462,7 +454,7 @@ class Music(commands.Cog):
 	@commands.command(name=command[5][0], aliases=command[5][1:])
 	async def _skip(self, ctx: commands.Context, *, args: int = 1):
 		if not ctx.voice_state.is_playing:
-			return await ctx.send(':mute: 쉬는중~')
+			return await ctx.send(':mute: 뭐')
 
 		await ctx.message.add_reaction('⏭')
 
@@ -484,13 +476,13 @@ class Music(commands.Cog):
 			else:
 				await ctx.send('Skip vote added, currently at **{}/3**'.format(total_votes))
 		else:
-			await ctx.send('```이미 투표한```')
+			await ctx.send('```이미 투표하셨습니다.```')
 		'''
 	@commands.command(name=command[6][0], aliases=command[6][1:])
 	async def _queue(self, ctx: commands.Context, *, page: int = 1):
 
 		if len(ctx.voice_state.songs) == 0:
-			return await ctx.send(':mute: 재생목록 비어있어오')
+			return await ctx.send(':mute: 뭐')
 		
 		items_per_page = 10
 		pages = math.ceil(len(ctx.voice_state.songs) / items_per_page)
@@ -514,18 +506,18 @@ class Music(commands.Cog):
 	@commands.command(name=command[11][0], aliases=command[11][1:])
 	async def _shuffle(self, ctx: commands.Context):
 		if len(ctx.voice_state.songs) == 0:
-			return await ctx.send(':mute: 재생목록 비어있어오')
+			return await ctx.send(':mute: 뭐')
 
 		ctx.voice_state.songs.shuffle()
-		result = await ctx.send('셔플 완료!')
+		result = await ctx.send('카드섞기')
 		await result.add_reaction('🔀')
 
 	@commands.command(name=command[10][0], aliases=command[10][1:])
 	async def _remove(self, ctx: commands.Context, index: int):
 		if len(ctx.voice_state.songs) == 0:
-			return await ctx.send(':mute: 재생목록 비어있어오')
+			return await ctx.send(':mute: 뭐')
 		
-		remove_result = '`{0}.` [**{1.source.title}**] 삭제 완료!\n'.format(index, ctx.voice_state.songs[index - 1])
+		remove_result = '`{0}.` [**{1.source.title}**] 저런\n'.format(index, ctx.voice_state.songs[index - 1])
 		result = await ctx.send(remove_result)
 		ctx.voice_state.songs.remove(index - 1)
 		await result.add_reaction('✅')
@@ -534,14 +526,14 @@ class Music(commands.Cog):
 	@commands.command(name=command[14][0], aliases=command[14][1:])
 	async def _loop(self, ctx: commands.Context):
 		if not ctx.voice_state.is_playing:
-			return await ctx.send(':mute: 쉬는중~')
+			return await ctx.send(':mute: 뭐')
 
 		# Inverse boolean value to loop and unloop.
 		ctx.voice_state.loop = not ctx.voice_state.loop
 		if ctx.voice_state.loop :
-			result = await ctx.send('반복 켜진!')
+			result = await ctx.send('반복 어서오고')
 		else:
-			result = await ctx.send('반복 꺼진!')
+			result = await ctx.send('반복 꺼뎌')
 		await result.add_reaction('🔁')
 
 	@commands.command(name=command[2][0], aliases=command[2][1:])
@@ -553,37 +545,37 @@ class Music(commands.Cog):
 			try:
 				source = await YTDLSource.create_source(self.bot, ctx, search, loop=self.bot.loop)
 				if not source:
-					return await ctx.send(f"노래 재생/예약이 취소 되었습니다.")
+					return await ctx.send(f"ㅅㄱ")
 			except YTDLError as e:
-				await ctx.send('Error! : {}'.format(str(e)))
+				await ctx.send('폭4 : {}'.format(str(e)))
 			else:
 				song = Song(source)
 
 				await ctx.voice_state.songs.put(song)
-				await ctx.send('재생목록 추가 : {}'.format(str(source)))
+				await ctx.send('**리스트** : {}'.format(str(source)))
 
 	@commands.command(name=command[13][0], aliases=command[13][1:])
 	async def clear_channel_(self, ctx: commands.Context, *, msg: int = 1):
 		try:
 			msg = int(msg)
 		except:
-			await ctx.send(f"```지우고 싶은 줄수는 [숫자]로 적어주세오```")
+			await ctx.send(f"```[숫자]```")
 		await ctx.channel.purge(limit = msg)
 
 	@_summon.before_invoke
 	@_play.before_invoke
 	async def ensure_voice_state(self, ctx: commands.Context):
 		if not ctx.author.voice or not ctx.author.voice.channel:
-			raise commands.CommandError('음성채널에 접속 후 불러주세오')
+			raise commands.CommandError('어디로 와야댐')
 
 		if ctx.voice_client:
 			if ctx.voice_client.channel != ctx.author.voice.channel:
-				raise commands.CommandError('이미 들어감')
+				raise commands.CommandError('이미옴')
 
 	@commands.command(name=command[12][0], aliases=command[12][1:])   #도움말
 	async def menu_(self, ctx):
 		command_list = ''
-		command_list += '!load : 봇상태가 안좋을 때 쓰세요!' + '\n'    #!
+		command_list += '!인중 : 봇상태가 안좋을 때 쓰세요!'     #!
 		command_list += ','.join(command[0]) + '\n'     #!들어가자
 		command_list += ','.join(command[1]) + '\n'     #!나가자
 		command_list += ','.join(command[2]) + ' [검색어] or [url]\n'     #!재생
@@ -597,20 +589,15 @@ class Music(commands.Cog):
 		command_list += ','.join(command[10]) + '\n'     #!삭제
 		command_list += ','.join(command[11]) + '\n'     #!섞기
 		command_list += ','.join(command[14]) + '\n'     #!
-		command_list += ','.join(command[13]) + ' [숫자]\n'     #!경주
+		command_list += ','.join(command[13]) + ' [숫자]\n'     #!채팅청소
 		embed = discord.Embed(
 				title = "----- 명령어 -----",
 				description= '```' + command_list + '```',
 				color=0xff00ff
 				)
 		await ctx.send( embed=embed, tts=False)
-	################ 음성파일 생성 후 재생 ################ 			
-	@commands.command(name="!load")
-	async def playText_(self, ctx):
-		await ctx.send("```뮤직봇 상태가 별로 안좋아오```", tts=False)
 
-
-bot = commands.Bot('', help_command = None, description='뮤직봇')
+bot = commands.Bot('', help_command = None, description='ㅎㅇ')
 bot.add_cog(Music(bot))
 
 @bot.event
@@ -619,9 +606,8 @@ async def on_ready():
 	print(bot.user.name)
 	print(bot.user.id)
 	print("===========")
-	print("먀")
 	
-	await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=command[12][0], type=1), afk = False)
+	await bot.change_presence(status=discord.Status.dnd, activity=discord.Game(name=command[12][0], type=1), afk = False)
 
 @bot.event 
 async def on_command_error(ctx, error):
