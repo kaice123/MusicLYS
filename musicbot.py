@@ -617,4 +617,4 @@ async def on_command_error(ctx, error):
 		return
 	raise error
 
-bot.run(BOT_TOKEN)
+bot.run(access)
